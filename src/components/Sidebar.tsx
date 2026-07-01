@@ -40,7 +40,7 @@ export default function Sidebar({ activePage, setActivePage, isOpen }: Props) {
 
   return (
     <aside className={`
-      fixed lg:relative z-40 h-[100dvh] w-[min(18rem,86vw)] lg:w-64 bg-[#0f1220] border-r border-[#2a2f3e] flex flex-col
+      fixed lg:relative z-40 h-full w-[min(18rem,86vw)] lg:w-64 bg-[#0f1220] border-r border-[#2a2f3e] flex flex-col
       transform transition-transform duration-300 ease-in-out
       ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
     `}>
