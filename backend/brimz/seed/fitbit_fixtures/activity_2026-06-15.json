@@ -1,0 +1,16 @@
+{
+  "activities": [],
+  "summary": {
+    "steps": 11840,
+    "caloriesOut": 2680,
+    "veryActiveMinutes": 96,
+    "fairlyActiveMinutes": 42,
+    "lightlyActiveMinutes": 210,
+    "sedentaryMinutes": 640,
+    "restingHeartRate": 58
+  },
+  "goals": {
+    "steps": 10000,
+    "caloriesOut": 2400
+  }
+}
