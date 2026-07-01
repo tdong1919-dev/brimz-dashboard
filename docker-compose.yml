@@ -1,0 +1,23 @@
+# Development stack for the Brimz MVP.
+# A local Postgres 16 already runs on host :5432, so we expose ours on :5433.
+services:
+  db:
+    image: postgres:16
+    container_name: brimz-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: brimz
+      POSTGRES_PASSWORD: brimz
+      POSTGRES_DB: brimz
+    ports:
+      - "5433:5432"
+    volumes:
+      - brimz_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U brimz -d brimz"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  brimz_pgdata:
