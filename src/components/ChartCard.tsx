@@ -14,10 +14,10 @@ const accentMap = {
 
 export default function ChartCard({ title, subtitle, children, className = '', accent }: Props) {
   return (
-    <div className={`bg-[#141824] border ${accent ? accentMap[accent] : 'border-[#2a2f3e]'} rounded-xl p-4 ${className}`}>
-      <div className="mb-4">
-        <h3 className="text-sm font-semibold text-[#e2e8f0]">{title}</h3>
-        {subtitle && <p className="text-xs text-[#64748b] mt-0.5">{subtitle}</p>}
+    <div className={`bg-[#141824] border ${accent ? accentMap[accent] : 'border-[#2a2f3e]'} rounded-xl p-3 sm:p-4 overflow-hidden min-w-0 ${className}`}>
+      <div className="mb-4 min-w-0">
+        <h3 className="text-sm font-semibold text-[#e2e8f0] leading-snug break-words">{title}</h3>
+        {subtitle && <p className="text-xs text-[#64748b] mt-0.5 leading-relaxed break-words">{subtitle}</p>}
       </div>
       {children}
     </div>

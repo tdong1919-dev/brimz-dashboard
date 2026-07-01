@@ -12,14 +12,14 @@ interface Props {
 
 export default function Layout({ children, activePage, setActivePage, sidebarOpen, setSidebarOpen }: Props) {
   return (
-    <div className="flex h-screen bg-[#0a0d14] overflow-hidden">
+    <div className="flex h-[100dvh] min-h-[100dvh] bg-[#0a0d14] overflow-hidden">
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/60 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 bg-black/60 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
       <Sidebar activePage={activePage} setActivePage={(p) => { setActivePage(p); setSidebarOpen(false) }} isOpen={sidebarOpen} />
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
         <Header setSidebarOpen={setSidebarOpen} />
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-3 sm:p-4 lg:p-6 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           {children}
         </main>
       </div>

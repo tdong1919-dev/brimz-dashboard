@@ -5,8 +5,8 @@ import ProgressBar from '../components/ProgressBar'
 
 function Stat({ label, value, color = '#14b8a6' }: { label: string; value: string; color?: string }) {
   return (
-    <div className="bg-[#141824] border border-[#2a2f3e] rounded-xl p-4 min-h-[96px]">
-      <div className="text-2xl font-black" style={{ color }}>{value}</div>
+    <div className="bg-[#141824] border border-[#2a2f3e] rounded-xl p-3 sm:p-4 min-h-[82px] sm:min-h-[96px]">
+      <div className="text-xl sm:text-2xl font-black" style={{ color }}>{value}</div>
       <div className="text-xs text-[#64748b] mt-1 leading-snug">{label}</div>
     </div>
   )
@@ -52,7 +52,7 @@ export function FanEnergyIndex() {
   return (
     <div className="space-y-6">
       <PageHeader title="Fan Energy Index" subtitle="Quality of the fan experience, not just attendance" />
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 min-[380px]:grid-cols-2 lg:grid-cols-4 gap-3">
         <Stat label="Current FEI" value="87.4" />
         <Stat label="Participation rate" value="73%" color="#a855f7" />
         <Stat label="Positive sentiment" value="91%" />
@@ -98,7 +98,7 @@ export function ThemeNights() {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {themes.map((t) => (
           <ChartCard key={t.name} title={t.name} accent="teal">
-            <div className="grid grid-cols-3 gap-2 mb-3">
+            <div className="grid grid-cols-1 min-[420px]:grid-cols-3 gap-2 mb-3">
               <Stat label="FEI" value={String(t.fei)} />
               <Stat label="Particip." value={`${t.participation}%`} color="#a855f7" />
               <Stat label="Impact" value={String(t.impact)} color="#f59e0b" />
@@ -117,7 +117,7 @@ export function SponsorIntelligence() {
     <div className="space-y-6">
       <PageHeader title="Sponsor Intelligence" subtitle="Activation performance, fan sentiment, estimated value, and renewal opportunity" />
       <ChartCard title="Sponsor Activation Performance" accent="gold">
-        <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-[#2a2f3e]">{['Sponsor','Activation','Interaction','Sentiment','Value','Renewal','Best Zone'].map(h => <th key={h} className="text-left py-2 px-3 text-[10px] text-[#64748b] uppercase whitespace-nowrap">{h}</th>)}</tr></thead><tbody>{sponsors.map((s) => <tr key={s[0]} className="border-b border-[#1a1f2e]"><td className="py-3 px-3 font-semibold text-[#e2e8f0] whitespace-nowrap">{s[0]}</td><td className="py-3 px-3 text-[#94a3b8] whitespace-nowrap">{s[1]}</td><td className="py-3 px-3 text-[#14b8a6] font-bold">{s[2]}</td><td className="py-3 px-3 text-[#94a3b8]">{s[3]}</td><td className="py-3 px-3 text-[#f59e0b] font-bold">{s[4]}</td><td className="py-3 px-3 text-[#14b8a6] font-bold">{s[5]}</td><td className="py-3 px-3 text-[#94a3b8] whitespace-nowrap">{s[6]}</td></tr>)}</tbody></table></div>
+        <div className="-mx-3 sm:mx-0 overflow-x-auto pb-1"><table className="w-full text-sm"><thead><tr className="border-b border-[#2a2f3e]">{['Sponsor','Activation','Interaction','Sentiment','Value','Renewal','Best Zone'].map(h => <th key={h} className="text-left py-2 px-3 text-[10px] text-[#64748b] uppercase whitespace-nowrap">{h}</th>)}</tr></thead><tbody>{sponsors.map((s) => <tr key={s[0]} className="border-b border-[#1a1f2e]"><td className="py-3 px-3 font-semibold text-[#e2e8f0] whitespace-nowrap">{s[0]}</td><td className="py-3 px-3 text-[#94a3b8] whitespace-nowrap">{s[1]}</td><td className="py-3 px-3 text-[#14b8a6] font-bold">{s[2]}</td><td className="py-3 px-3 text-[#94a3b8]">{s[3]}</td><td className="py-3 px-3 text-[#f59e0b] font-bold">{s[4]}</td><td className="py-3 px-3 text-[#14b8a6] font-bold">{s[5]}</td><td className="py-3 px-3 text-[#94a3b8] whitespace-nowrap">{s[6]}</td></tr>)}</tbody></table></div>
       </ChartCard>
     </div>
   )
