@@ -40,16 +40,16 @@ export default function Sidebar({ activePage, setActivePage, isOpen }: Props) {
 
   return (
     <aside className={`
-      fixed lg:relative z-30 h-full w-64 bg-[#0f1220] border-r border-[#2a2f3e] flex flex-col
+      fixed lg:relative z-40 h-full w-[min(18rem,86vw)] lg:w-64 bg-[#0f1220] border-r border-[#2a2f3e] flex flex-col
       transform transition-transform duration-300 ease-in-out
       ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
     `}>
       <div className="px-4 py-3 border-b border-[#2a2f3e] flex flex-col gap-1">
-        <BrimzLogo width={172} />
+        <BrimzLogo width={156} />
         <div className="text-[9px] text-[#475569] tracking-wide">LIVE MORE. CONNECT DEEPER.</div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-4 px-3">
+      <nav className="flex-1 overflow-y-auto overscroll-contain py-4 px-2 sm:px-3">
         {nav.map(({ section, items }) => (
           <div key={section} className="mb-2">
             <button

@@ -70,7 +70,7 @@ export default function Billing() {
       <ChartCard title="Founding Venue Intelligence Consortium" subtitle="Invitation Only - limited to 10 organizations" accent="teal" className="shadow-[0_0_34px_rgba(20,184,166,0.12)]">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-4 items-start">
           <div>
-            <div className="text-2xl font-black text-[#e2e8f0] mb-2">Founding Venue Intelligence Consortium</div>
+            <div className="text-xl sm:text-2xl font-black text-[#e2e8f0] mb-2">Founding Venue Intelligence Consortium</div>
             <p className="text-sm text-[#94a3b8] leading-relaxed mb-4">For the first organizations helping define the Fan Energy Index standard and the future benchmark dataset for live-event intelligence.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">{consortium.map((item) => <Feature key={item}>{item}</Feature>)}</div>
           </div>
@@ -84,12 +84,12 @@ export default function Billing() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {tiers.map((tier) => (
-          <div key={tier.name} className={`bg-[#141824] border rounded-xl p-4 transition-all hover:-translate-y-1 hover:border-[#14b8a6]/50 ${tier.recommended ? 'border-[#14b8a6]/50 shadow-[0_0_28px_rgba(20,184,166,0.12)]' : tier.enterprise ? 'border-[#f59e0b]/40' : 'border-[#2a2f3e]'}`}>
+          <div key={tier.name} className={`bg-[#141824] border rounded-xl p-4 transition-all sm:hover:-translate-y-1 hover:border-[#14b8a6]/50 ${tier.recommended ? 'border-[#14b8a6]/50 shadow-[0_0_28px_rgba(20,184,166,0.12)]' : tier.enterprise ? 'border-[#f59e0b]/40' : 'border-[#2a2f3e]'}`}>
             <div className="flex items-center justify-between gap-2 mb-3">
               <h3 className="text-lg font-black text-[#e2e8f0]">{tier.name}</h3>
               {tier.recommended && <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-[#14b8a6]/15 text-[#14b8a6]">Recommended</span>}
             </div>
-            <div className="text-2xl font-black text-[#14b8a6] mb-1">{tier.price}</div>
+            <div className="text-xl sm:text-2xl font-black text-[#14b8a6] mb-1">{tier.price}</div>
             <div className="text-xs text-[#64748b] mb-3">Typical attendance: {tier.attendance}</div>
             <div className="text-xs text-[#94a3b8] mb-4">Examples: {tier.examples}</div>
             <div className="space-y-2 mb-5">{tier.includes.map((item) => <Feature key={item}>{item}</Feature>)}</div>
@@ -108,12 +108,12 @@ export default function Billing() {
               </label>
             ))}
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-[#1a1f2e] rounded-lg p-3"><div className="text-xl font-black text-[#14b8a6]">${Math.round(roi.savings).toLocaleString()}</div><div className="text-xs text-[#64748b]">Operational savings</div></div>
-            <div className="bg-[#1a1f2e] rounded-lg p-3"><div className="text-xl font-black text-[#f59e0b]">${Math.round(roi.sponsorValue).toLocaleString()}</div><div className="text-xs text-[#64748b]">Additional sponsor value</div></div>
-            <div className="bg-[#1a1f2e] rounded-lg p-3"><div className="text-xl font-black text-[#a855f7]">${Math.round(roi.concessionLift).toLocaleString()}</div><div className="text-xs text-[#64748b]">Concession lift</div></div>
-            <div className="bg-[#1a1f2e] rounded-lg p-3"><div className="text-xl font-black text-[#14b8a6]">${Math.round(roi.total).toLocaleString()}</div><div className="text-xs text-[#64748b]">Estimated annual ROI</div></div>
-            <div className="col-span-2 bg-[#0f1220] border border-[#14b8a6]/30 rounded-lg p-3"><div className="text-xl font-black text-[#e2e8f0]">{roi.payback} months</div><div className="text-xs text-[#64748b]">Estimated payback period</div></div>
+          <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-3">
+            <div className="bg-[#1a1f2e] rounded-lg p-3"><div className="text-lg sm:text-xl font-black text-[#14b8a6]">${Math.round(roi.savings).toLocaleString()}</div><div className="text-xs text-[#64748b]">Operational savings</div></div>
+            <div className="bg-[#1a1f2e] rounded-lg p-3"><div className="text-lg sm:text-xl font-black text-[#f59e0b]">${Math.round(roi.sponsorValue).toLocaleString()}</div><div className="text-xs text-[#64748b]">Additional sponsor value</div></div>
+            <div className="bg-[#1a1f2e] rounded-lg p-3"><div className="text-lg sm:text-xl font-black text-[#a855f7]">${Math.round(roi.concessionLift).toLocaleString()}</div><div className="text-xs text-[#64748b]">Concession lift</div></div>
+            <div className="bg-[#1a1f2e] rounded-lg p-3"><div className="text-lg sm:text-xl font-black text-[#14b8a6]">${Math.round(roi.total).toLocaleString()}</div><div className="text-xs text-[#64748b]">Estimated annual ROI</div></div>
+            <div className="min-[380px]:col-span-2 bg-[#0f1220] border border-[#14b8a6]/30 rounded-lg p-3"><div className="text-lg sm:text-xl font-black text-[#e2e8f0]">{roi.payback} months</div><div className="text-xs text-[#64748b]">Estimated payback period</div></div>
           </div>
         </div>
       </ChartCard>

@@ -25,19 +25,19 @@ export default function KPICard({ label, value, suffix, change, up, color, icon,
   const IconComponent = iconMap[icon]
 
   return (
-    <div className="bg-[#141824] border border-[#2a2f3e] rounded-xl p-4 flex flex-col justify-between min-h-[110px] hover:border-[#3a3f4e] transition-all">
+    <div className="bg-[#141824] border border-[#2a2f3e] rounded-xl p-3 sm:p-4 flex flex-col justify-between min-h-[104px] sm:min-h-[110px] hover:border-[#3a3f4e] transition-all">
       {/* Label + icon */}
       <div className="flex items-start justify-between mb-2">
         <div className="text-[10px] font-semibold tracking-widest text-[#64748b] uppercase leading-tight pr-2">{label}</div>
         {IconComponent && (
-          <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: c.bg }}>
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: c.bg }}>
             <IconComponent className="w-4 h-4" style={{ color: c.icon }} />
           </div>
         )}
       </div>
 
       {/* Value */}
-      <div className="text-[26px] font-black text-[#f1f5f9] leading-none mb-1">
+      <div className="text-[22px] sm:text-[26px] font-black text-[#f1f5f9] leading-none mb-1">
         {value}
         {suffix && <span className="text-sm font-semibold text-[#475569] ml-0.5">{suffix}</span>}
       </div>

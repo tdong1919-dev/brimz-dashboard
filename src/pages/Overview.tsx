@@ -159,7 +159,7 @@ export default function Overview() {
             {zoneEngagement.map((z) => (
               <div key={z.zone}>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] text-[#94a3b8] w-36 flex-shrink-0 truncate">{z.zone}</span>
+                  <span className="text-[10px] text-[#94a3b8] w-24 sm:w-36 flex-shrink-0 truncate">{z.zone}</span>
                   <div className="flex-1 h-3 bg-[#1a1f2e] rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full"
@@ -225,7 +225,7 @@ export default function Overview() {
         <Card className="col-span-12 lg:col-span-5">
           <SectionHeader title="Engagement Breakdown" />
           {/* 4 mini stats */}
-          <div className="grid grid-cols-4 gap-2 mb-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
             {engagementBreakdown.stats.map((s) => (
               <div key={s.label} className="bg-[#1a1f2e] rounded-lg p-2">
                 <div className="text-[9px] text-[#64748b] uppercase tracking-wide mb-1 leading-tight">{s.label}</div>
@@ -384,7 +384,7 @@ export default function Overview() {
               <UpBadge pct={sponsorSummary.change} />
               <div className="text-[9px] text-[#475569] mb-2">vs previous 5 events</div>
               {/* 4 sponsor metrics */}
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
                   { label: 'Impressions', ...sponsorSummary.impressions },
                   { label: 'Engagements', ...sponsorSummary.engagements },
