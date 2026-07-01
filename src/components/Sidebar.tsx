@@ -1,48 +1,25 @@
 import { PageKey } from '../App'
-import { BarChart3, Users, Zap, DollarSign, Star, FileText, Calendar, ShieldCheck, Cpu, Bell, PieChart, Megaphone, Image, Building2, Plug, CreditCard, Home, ChevronDown } from 'lucide-react'
+import { BarChart3, Zap, Star, FileText, Calendar, Bell, CreditCard, Home, ChevronDown } from 'lucide-react'
 import { useState } from 'react'
+import BrimzLogo from './BrimzLogo'
 
 const nav = [
   {
-    section: 'Venue',
+    section: 'Venue Intelligence',
     items: [
       { key: 'overview', label: 'Overview', icon: Home },
-      { key: 'events',   label: 'Events',   icon: Calendar },
+      { key: 'fei', label: 'Fan Energy Index', icon: Zap },
+      { key: 'heatmaps', label: 'Heat Maps', icon: BarChart3 },
+      { key: 'themes', label: 'Theme Nights', icon: Calendar },
+      { key: 'sponsorIntel', label: 'Sponsor Intelligence', icon: Star },
+      { key: 'peaks', label: 'Emotional Peaks', icon: Bell },
+      { key: 'comparison', label: 'Event Comparison', icon: BarChart3 },
+      { key: 'insights', label: 'Executive Insights', icon: FileText },
     ],
   },
   {
-    section: 'Analytics',
+    section: 'Commercial',
     items: [
-      { key: 'performance', label: 'Performance', icon: BarChart3 },
-      { key: 'crowd', label: 'Crowd Insights', icon: Zap },
-      { key: 'fanengagement', label: 'Fan Engagement', icon: Users },
-      { key: 'revenue', label: 'Revenue', icon: DollarSign },
-      { key: 'sponsorship', label: 'Sponsorship ROI', icon: Star },
-      { key: 'reporting', label: 'Reporting', icon: FileText },
-    ],
-  },
-  {
-    section: 'Operations',
-    items: [
-      { key: 'events', label: 'Event Management', icon: Calendar },
-      { key: 'staff', label: 'Staff & Access', icon: ShieldCheck },
-      { key: 'devices', label: 'Devices & Inventory', icon: Cpu },
-      { key: 'alerts', label: 'Alerts', icon: Bell },
-    ],
-  },
-  {
-    section: 'Growth & Marketing',
-    items: [
-      { key: 'segments', label: 'Fan Segmentation', icon: PieChart },
-      { key: 'campaigns', label: 'Campaigns', icon: Megaphone },
-      { key: 'ugc', label: 'Content & UGC', icon: Image },
-    ],
-  },
-  {
-    section: 'Settings',
-    items: [
-      { key: 'profile', label: 'Venue Profile', icon: Building2 },
-      { key: 'integrations', label: 'Integrations', icon: Plug },
       { key: 'billing', label: 'Billing', icon: CreditCard },
     ],
   },
@@ -67,14 +44,9 @@ export default function Sidebar({ activePage, setActivePage, isOpen }: Props) {
       transform transition-transform duration-300 ease-in-out
       ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
     `}>
-      <div className="p-4 border-b border-[#2a2f3e] flex items-center gap-3">
-        <div className="w-9 h-9 rounded-lg bg-[#1a1f2e] border border-[#2a2f3e] flex items-center justify-center flex-shrink-0">
-          <span className="text-base font-black text-[#f59e0b]">B</span>
-        </div>
-        <div>
-          <div className="text-sm font-black tracking-widest text-[#f59e0b] leading-none">BRIMZ</div>
-          <div className="text-[9px] text-[#475569] tracking-wide mt-0.5">LIVE MORE. CONNECT DEEPER.</div>
-        </div>
+      <div className="px-4 py-3 border-b border-[#2a2f3e] flex flex-col gap-1">
+        <BrimzLogo width={172} />
+        <div className="text-[9px] text-[#475569] tracking-wide">LIVE MORE. CONNECT DEEPER.</div>
       </div>
 
       <nav className="flex-1 overflow-y-auto py-4 px-3">
@@ -96,15 +68,15 @@ export default function Sidebar({ activePage, setActivePage, isOpen }: Props) {
                       key={key}
                       onClick={() => setActivePage(key as PageKey)}
                       className={`
-                        w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all
+                        w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all text-left
                         ${active
-                          ? 'bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20'
+                          ? 'bg-[#14b8a6]/10 text-[#14b8a6] border border-[#14b8a6]/20'
                           : 'text-[#94a3b8] hover:bg-[#1a1f2e] hover:text-[#e2e8f0]'
                         }
                       `}
                     >
-                      <Icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-[#f59e0b]' : ''}`} />
-                      {label}
+                      <Icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-[#14b8a6]' : ''}`} />
+                      <span className="truncate">{label}</span>
                     </button>
                   )
                 })}
@@ -116,10 +88,10 @@ export default function Sidebar({ activePage, setActivePage, isOpen }: Props) {
 
       <div className="p-4 border-t border-[#2a2f3e]">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#f59e0b] to-[#a855f7] flex items-center justify-center text-xs font-bold text-black">VN</div>
-          <div>
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#14b8a6] to-[#a855f7] flex items-center justify-center text-xs font-bold text-black">VN</div>
+          <div className="min-w-0">
             <div className="text-sm font-semibold text-[#e2e8f0]">Venue Admin</div>
-            <div className="text-xs text-[#64748b]">admin@brimzband.com</div>
+            <div className="text-xs text-[#64748b] truncate">admin@brimzband.com</div>
           </div>
         </div>
       </div>
