@@ -40,7 +40,17 @@ jobs:
           .venv/bin/brimz validate
       - name: Pytest
         run: cd backend && .venv/bin/pytest -q
-      - name: DB smoke
+      - name: Start API (for M2 smoke)
+        run: |
+          cd backend
+          .venv/bin/brimz serve --host 127.0.0.1 --port 8000 &
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:8000/health && break
+            sleep 1
+          done
+      - name: Smoke (DB + API)
+        env:
+          API_BASE_URL: http://127.0.0.1:8000
         run: bash qa/smoke/run_all.sh
 
   e2e:

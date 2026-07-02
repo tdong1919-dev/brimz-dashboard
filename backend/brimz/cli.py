@@ -8,6 +8,7 @@ demo/mock data:
     brimz seed      load mock data + Fitbit fixture data
     brimz validate  run integrity + acceptance checks
     brimz status    show row counts per table
+    brimz serve     run the FastAPI REST + WebSocket API (Milestone 2)
 """
 from __future__ import annotations
 
@@ -94,6 +95,18 @@ def cmd_status(_: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_serve(args: argparse.Namespace) -> int:
+    import uvicorn
+
+    uvicorn.run(
+        "brimz.api.main:app",
+        host=args.host or settings.api_host,
+        port=args.port or settings.api_port,
+        reload=args.reload,
+    )
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="brimz", description="Brimz DB admin CLI")
     parser.add_argument("--db", help="override DATABASE_URL (informational)", default=None)
@@ -109,6 +122,12 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("validate", help="run integrity + acceptance checks").set_defaults(func=cmd_validate)
     sub.add_parser("status", help="row counts per table").set_defaults(func=cmd_status)
+
+    p_serve = sub.add_parser("serve", help="run the FastAPI REST + WebSocket API")
+    p_serve.add_argument("--host", default=None, help="bind host (default from settings)")
+    p_serve.add_argument("--port", type=int, default=None, help="bind port (default from settings)")
+    p_serve.add_argument("--reload", action="store_true", help="auto-reload on code changes (dev)")
+    p_serve.set_defaults(func=cmd_serve)
 
     args = parser.parse_args(argv)
     if args.db:

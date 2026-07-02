@@ -32,5 +32,15 @@ check_json() { # check_json <path> <label>
 check_json "/health" "health endpoint"
 check_json "/api/v1/events" "events list"
 check_json "/api/v1/events/1/energy" "energy timeline"
+check_json "/api/v1/events/1/state" "live stadium state (playback)"
+check_json "/api/v1/events/1/zones" "per-zone engagement"
+check_json "/api/v1/playback?event_id=1" "playback state"
+
+# The live snapshot must expose per-zone energy (the simulation's core promise).
+if curl -fsS --max-time 5 "$API/api/v1/events/1/state" | grep -q '"zones"'; then
+  ok "state exposes per-zone energy"
+else
+  fail "state exposes per-zone energy"
+fi
 
 summary

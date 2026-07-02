@@ -15,6 +15,25 @@ class Settings(BaseSettings):
     # How many detailed attendee rows the seeder generates.
     seed_attendees: int = 500
 
+    # --- API (Milestone 2) ---
+    api_host: str = "0.0.0.0"
+    api_port: int = 8000
+    # CORS origins allowed to call the API (the dashboard dev server). Comma-separated.
+    api_cors_origins: str = "http://localhost:5173,http://localhost:4173"
+
+    # --- Playback / simulation engine (Milestone 2) ---
+    # Wall-clock seconds for one full replay of an event window (compresses a
+    # multi-hour event into a demo-friendly loop). 300s => a 5h event loops every 5 min.
+    playback_loop_seconds: float = 300.0
+    # How often the live WebSocket pushes a tick, in wall-clock seconds.
+    playback_tick_seconds: float = 2.0
+    # Which event the playback engine drives by default (the fully-simulated demo event).
+    playback_default_event_id: int = 1
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [o.strip() for o in self.api_cors_origins.split(",") if o.strip()]
+
     # Look for .env at repo root as well as backend/.
     model_config = SettingsConfigDict(
         env_file=(".env", "../.env"), env_file_encoding="utf-8", extra="ignore"
