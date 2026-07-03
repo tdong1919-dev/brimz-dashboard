@@ -6,6 +6,7 @@ DIR="$(dirname "${BASH_SOURCE[0]}")"
 RC=0
 bash "$DIR/m1_database.sh" "$@" || RC=1
 bash "$DIR/m2_api.sh"      || RC=1
+bash "$DIR/m3_frontend.sh" || RC=1
 
 echo
 if [ "$RC" -eq 0 ]; then
