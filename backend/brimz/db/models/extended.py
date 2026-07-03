@@ -139,6 +139,8 @@ class StaffUser(Base, TimestampMixin):
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     role: Mapped[str] = mapped_column(String(48), default="Viewer", nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # NULL = user cannot log in (pre-M3 rows). Set by the seeder / future user admin.
+    password_hash: Mapped[str | None] = mapped_column(String(255))
 
 
 class AccessRole(Base):

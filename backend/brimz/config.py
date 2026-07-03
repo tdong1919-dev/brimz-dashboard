@@ -21,6 +21,17 @@ class Settings(BaseSettings):
     # CORS origins allowed to call the API (the dashboard dev server). Comma-separated.
     api_cors_origins: str = "http://localhost:5173,http://localhost:4173"
 
+    # --- Auth (Milestone 3) ---
+    # HS256 signing key for JWTs. The default is fine for local dev/demo; set a
+    # long random value in production (.env).
+    auth_secret_key: str = "brimz-dev-secret-change-me-not-for-production"
+    auth_access_ttl_minutes: int = 30
+    auth_refresh_ttl_days: int = 7
+    # Passwords given to the three seeded demo users (printed by `brimz seed`).
+    seed_admin_password: str = "brimz-admin"
+    seed_manager_password: str = "brimz-manager"
+    seed_viewer_password: str = "brimz-viewer"
+
     # --- Playback / simulation engine (Milestone 2) ---
     # Wall-clock seconds for one full replay of an event window (compresses a
     # multi-hour event into a demo-friendly loop). 300s => a 5h event loops every 5 min.

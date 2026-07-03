@@ -366,13 +366,19 @@ def seed_all(session: Session, n_attendees: int | None = None) -> dict[str, int]
     ]
     for name, desc in roles:
         session.add(AccessRole(name=name, description=desc))
+    # M3: demo logins — one per role, passwords from settings (printed by `brimz seed`).
+    from brimz.api.security import hash_password
+
     staff = [
-        ("owner@brimz.tech", "Bennie B.", "Admin"),
-        ("ops@brimz.tech", "Ops Manager", "Manager"),
-        ("analyst@brimz.tech", "Data Analyst", "Viewer"),
+        ("owner@brimz.tech", "Bennie B.", "Admin", settings.seed_admin_password),
+        ("ops@brimz.tech", "Ops Manager", "Manager", settings.seed_manager_password),
+        ("analyst@brimz.tech", "Data Analyst", "Viewer", settings.seed_viewer_password),
     ]
-    for email, name, role in staff:
-        session.add(StaffUser(email=email, name=name, role=role, is_active=True))
+    for email, name, role, password in staff:
+        session.add(StaffUser(
+            email=email, name=name, role=role, is_active=True,
+            password_hash=hash_password(password),
+        ))
     counts["access_roles"] = len(roles)
     counts["staff_users"] = len(staff)
 

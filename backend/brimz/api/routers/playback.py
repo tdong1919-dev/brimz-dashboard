@@ -1,6 +1,6 @@
 """Demo playback control — inspect and drive the shared PlaybackController.
 
-No auth in M2 by design; M3 gates this behind admin login. See `# M3-auth`.
+M3: reads require any authenticated user; POST (control) requires Manager/Admin.
 """
 from __future__ import annotations
 
@@ -11,9 +11,10 @@ from brimz.api.deps import controller, get_db
 from brimz.api.playback.clock import LIVE, PAUSED, SEEK
 from brimz.api.playback.state import clock_for_event, now_utc, playback_state
 from brimz.api.schemas.live import PlaybackControlIn, PlaybackStateOut
+from brimz.api.security import CONTROL_ROLES, get_current_user, require_role
 from brimz.config import settings
 
-router = APIRouter(prefix="/api/v1", tags=["playback"])
+router = APIRouter(prefix="/api/v1", tags=["playback"], dependencies=[Depends(get_current_user)])
 
 _VALID_MODES = {LIVE, PAUSED, SEEK}
 
@@ -33,13 +34,16 @@ def get_playback(
     return _state_for(db, event_id or settings.playback_default_event_id)
 
 
-@router.post("/playback", response_model=PlaybackStateOut)
+@router.post(
+    "/playback",
+    response_model=PlaybackStateOut,
+    dependencies=[Depends(require_role(*CONTROL_ROLES))],
+)
 def control_playback(
     body: PlaybackControlIn,
     db: Session = Depends(get_db),
     event_id: int = Query(None),
 ):
-    # M3-auth: restrict to admin once auth lands.
     if body.loop_seconds is not None:
         try:
             controller.set_speed(body.loop_seconds)

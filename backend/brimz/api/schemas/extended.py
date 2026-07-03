@@ -76,6 +76,7 @@ class FanSegmentOut(ORMModel):
     avg_spend: float | None = None
     avg_visits: float | None = None
     engagement: int | None = None
+    count: int = 0  # live membership size (M3)
 
 
 class IntegrationOut(ORMModel):

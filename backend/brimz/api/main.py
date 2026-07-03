@@ -1,18 +1,18 @@
-"""FastAPI application factory for the Brimz backend (Milestone 2)."""
+"""FastAPI application factory for the Brimz backend (Milestones 2–3)."""
 from __future__ import annotations
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
-from brimz.api.routers import commerce, events, live, ops, playback, venues
+from brimz.api.routers import admin, auth, commerce, events, live, ops, playback, venues
 from brimz.config import settings
 from brimz.db.base import SessionLocal
 
 app = FastAPI(
     title="Brimz API",
-    version="0.2.0",
-    description="Crowd-energy analytics API + live playback engine (Milestone 2).",
+    version="0.3.0",
+    description="Crowd-energy analytics API + live playback engine + auth/admin (Milestones 2–3).",
 )
 
 app.add_middleware(
@@ -36,5 +36,5 @@ def health() -> dict:
     return {"status": "ok" if db_ok else "degraded", "db": "ok" if db_ok else "down", "version": app.version}
 
 
-for module in (events, venues, commerce, ops, playback, live):
+for module in (auth, events, venues, commerce, ops, playback, live, admin):
     app.include_router(module.router)

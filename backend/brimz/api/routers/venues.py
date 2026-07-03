@@ -6,10 +6,11 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from brimz.api.deps import get_db
+from brimz.api.security import get_current_user
 from brimz.api.schemas.core import DemographicsOut, DeviceOut, VenueOut, ZoneOut
 from brimz.db.models.core import Attendee, Device, Venue, Zone
 
-router = APIRouter(prefix="/api/v1", tags=["venues"])
+router = APIRouter(prefix="/api/v1", tags=["venues"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("/venues", response_model=list[VenueOut])

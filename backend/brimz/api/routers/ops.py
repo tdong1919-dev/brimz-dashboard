@@ -6,15 +6,16 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from brimz.api.deps import get_db
+from brimz.api.security import get_current_user
 from brimz.api.schemas.extended import (
     AccessRoleOut,
     AlertOut,
     IntegrationOut,
     StaffUserOut,
 )
-from brimz.db.models.extended import AccessRole, Alert, Integration, StaffUser
+from brimz.db.models.extended import AccessRole, Alert, CrowdTrigger, Integration, StaffUser
 
-router = APIRouter(prefix="/api/v1", tags=["ops"])
+router = APIRouter(prefix="/api/v1", tags=["ops"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("/alerts", response_model=list[AlertOut])
@@ -27,6 +28,11 @@ def list_alerts(
     if event_id is not None:
         stmt = stmt.where(Alert.event_id == event_id)
     return db.execute(stmt).scalars().all()
+
+
+@router.get("/crowd-triggers", response_model=list[str])
+def list_crowd_triggers(db: Session = Depends(get_db)):
+    return db.execute(select(CrowdTrigger.name).order_by(CrowdTrigger.id)).scalars().all()
 
 
 @router.get("/integrations", response_model=list[IntegrationOut])

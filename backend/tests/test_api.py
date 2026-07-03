@@ -30,6 +30,7 @@ def client():
 
     from brimz.api.deps import controller
     from brimz.api.main import app
+    from brimz.config import settings
 
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
@@ -37,6 +38,14 @@ def client():
         seed_all(session, n_attendees=100)
     controller.play()  # ensure a clean LIVE state for each run
     with TestClient(app) as c:
+        # M3: reads require auth — run the suite as the seeded Admin.
+        r = c.post(
+            "/api/v1/auth/login",
+            json={"email": "owner@brimz.tech", "password": settings.seed_admin_password},
+        )
+        assert r.status_code == 200, r.text
+        c.token = r.json()["access_token"]
+        c.headers.update({"Authorization": f"Bearer {c.token}"})
         yield c
 
 
@@ -100,7 +109,7 @@ def test_kpis_and_zones(client):
 @pytest.mark.parametrize(
     "path",
     [
-        "/api/v1/venues", "/api/v1/devices", "/api/v1/demographics",
+        "/api/v1/venues", "/api/v1/devices", "/api/v1/demographics", "/api/v1/crowd-triggers",
         "/api/v1/sponsors", "/api/v1/sponsor-roi", "/api/v1/campaigns", "/api/v1/ugc",
         "/api/v1/fan-segments", "/api/v1/billing", "/api/v1/alerts",
         "/api/v1/integrations", "/api/v1/staff", "/api/v1/access-roles",
@@ -114,7 +123,7 @@ def test_endpoint_ok(client, path):
 
 
 def test_websocket_streams_ticks(client):
-    with client.websocket_connect("/api/v1/live?event_id=1") as ws:
+    with client.websocket_connect(f"/api/v1/live?event_id=1&token={client.token}") as ws:
         frame = ws.receive_json()
         assert frame["type"] == "tick"
         assert frame["state"]["event_id"] == 1

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from brimz.api.deps import get_db
@@ -14,10 +14,11 @@ from brimz.api.schemas.extended import (
     SponsorROIOut,
     UGCOut,
 )
-from brimz.db.models.core import FanSegment
+from brimz.db.models.core import AttendeeSegment, FanSegment
 from brimz.db.models.extended import BillingRecord, Campaign, Sponsor, SponsorROI, UGCContent
+from brimz.api.security import get_current_user
 
-router = APIRouter(prefix="/api/v1", tags=["commerce"])
+router = APIRouter(prefix="/api/v1", tags=["commerce"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("/sponsors", response_model=list[SponsorOut])
@@ -48,7 +49,20 @@ def list_ugc(
 
 @router.get("/fan-segments", response_model=list[FanSegmentOut])
 def list_fan_segments(db: Session = Depends(get_db)):
-    return db.execute(select(FanSegment).order_by(FanSegment.id)).scalars().all()
+    # count = live membership size, so it visibly scales when the admin reseeds.
+    counts = dict(
+        db.execute(
+            select(AttendeeSegment.segment_id, func.count()).group_by(AttendeeSegment.segment_id)
+        ).all()
+    )
+    segments = db.execute(select(FanSegment).order_by(FanSegment.id)).scalars().all()
+    return [
+        FanSegmentOut(
+            id=s.id, name=s.name, avg_spend=s.avg_spend, avg_visits=s.avg_visits,
+            engagement=s.engagement, count=counts.get(s.id, 0),
+        )
+        for s in segments
+    ]
 
 
 @router.get("/billing", response_model=list[BillingRecordOut])

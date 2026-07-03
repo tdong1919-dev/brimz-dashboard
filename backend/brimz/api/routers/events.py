@@ -32,7 +32,9 @@ from brimz.db.models.core import Event, Zone
 from brimz.db.models.extended import Alert, Emotion, RevenueLine, TopMoment, Transaction
 from brimz.db.models.wearable import EngagementEvent, ZoneEngagement
 
-router = APIRouter(prefix="/api/v1", tags=["events"])
+from brimz.api.security import get_current_user
+
+router = APIRouter(prefix="/api/v1", tags=["events"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("/events", response_model=list[EventOut])

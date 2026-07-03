@@ -60,6 +60,10 @@ def cmd_seed(args: argparse.Namespace) -> int:
     print(f"✓ seeded {total} rows across {len(counts)} tables:")
     for table, n in counts.items():
         print(f"    {table:<28} {n:>7}")
+    print("\n  demo logins (role — email / password):")
+    print(f"    Admin   — owner@brimz.tech / {settings.seed_admin_password}")
+    print(f"    Manager — ops@brimz.tech / {settings.seed_manager_password}")
+    print(f"    Viewer  — analyst@brimz.tech / {settings.seed_viewer_password}")
     return 0
 
 
