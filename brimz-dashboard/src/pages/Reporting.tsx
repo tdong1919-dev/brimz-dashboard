@@ -1,7 +1,11 @@
-import { FileText, Download, Calendar, Clock, CheckCircle } from 'lucide-react'
+import { FileText, Download, Calendar } from 'lucide-react'
 import ChartCard from '../components/ChartCard'
 import PageHeader from '../components/PageHeader'
+import QueryBoundary from '../components/QueryBoundary'
+import { useKpis, useRevenueSummary, human } from '../api/queries'
 
+// demo-static: saved reports, report-builder types, and scheduled deliveries
+// have no backing endpoint in the MVP.
 const savedReports = [
   { name: 'Q2 Event Performance Summary', type: 'Performance', date: '2026-05-20', status: 'Ready' },
   { name: 'Summer Fest Night 1 — Full Report', type: 'Event', date: '2026-05-18', status: 'Ready' },
@@ -24,6 +28,9 @@ const scheduled = [
 ]
 
 export default function Reporting() {
+  const revenueQuery = useRevenueSummary()
+  const kpisQuery = useKpis()
+
   return (
     <div className="space-y-6">
       <PageHeader title="Reporting" subtitle="Build, schedule, and export executive reports" />
@@ -81,14 +88,34 @@ export default function Reporting() {
 
         <ChartCard title="Executive Summary Preview" subtitle="Auto-generated from last event" accent="gold">
           <div className="space-y-3 text-sm">
-            <div className="p-3 bg-[#1a1f2e] rounded-lg border-l-2 border-[#f59e0b]">
-              <div className="text-xs font-semibold text-[#f59e0b] uppercase tracking-wide mb-1">Revenue</div>
-              <div className="text-[#e2e8f0]">$4.2M gross revenue — up 18% vs prior event. Ticketing drove 57% of total revenue.</div>
-            </div>
-            <div className="p-3 bg-[#1a1f2e] rounded-lg border-l-2 border-[#14b8a6]">
-              <div className="text-xs font-semibold text-[#14b8a6] uppercase tracking-wide mb-1">Engagement</div>
-              <div className="text-[#e2e8f0]">87.4 avg engagement score. Floor GA peaked at 94/100 during headliner set.</div>
-            </div>
+            <QueryBoundary query={revenueQuery} compact>
+              {(rev) => {
+                const ticketing = rev.breakdown.find((b) => b.category === 'Ticketing')
+                return (
+                  <div className="p-3 bg-[#1a1f2e] rounded-lg border-l-2 border-[#f59e0b]">
+                    <div className="text-xs font-semibold text-[#f59e0b] uppercase tracking-wide mb-1">Revenue</div>
+                    <div className="text-[#e2e8f0]">
+                      ${human(rev.total)} gross revenue across {rev.transactions.toLocaleString()} transactions.
+                      {ticketing ? ` Ticketing drove ${Math.round(ticketing.pct)}% of total revenue.` : ''}
+                    </div>
+                  </div>
+                )
+              }}
+            </QueryBoundary>
+            <QueryBoundary query={kpisQuery} compact>
+              {(kpis) => {
+                const eng = kpis.find((k) => k.label === 'Avg Engagement Score')
+                return (
+                  <div className="p-3 bg-[#1a1f2e] rounded-lg border-l-2 border-[#14b8a6]">
+                    <div className="text-xs font-semibold text-[#14b8a6] uppercase tracking-wide mb-1">Engagement</div>
+                    <div className="text-[#e2e8f0]">
+                      {eng ? `${eng.value}${eng.suffix ?? ''} avg engagement score across the venue.` : 'Engagement score unavailable.'}
+                    </div>
+                  </div>
+                )
+              }}
+            </QueryBoundary>
+            {/* demo-static: fan sentiment / NPS is not tracked in the MVP API */}
             <div className="p-3 bg-[#1a1f2e] rounded-lg border-l-2 border-[#a855f7]">
               <div className="text-xs font-semibold text-[#a855f7] uppercase tracking-wide mb-1">Fan Sentiment</div>
               <div className="text-[#e2e8f0]">84% positive sentiment. NPS of 72 — top quartile for live entertainment venues.</div>

@@ -1,50 +1,49 @@
 import { useState } from 'react'
-import { CheckCircle, XCircle, Link2 } from 'lucide-react'
+import { CheckCircle, Link2 } from 'lucide-react'
 import ChartCard from '../components/ChartCard'
 import PageHeader from '../components/PageHeader'
+import QueryBoundary from '../components/QueryBoundary'
+import { useIntegrations } from '../api/queries'
 
 type Integration = {
+  id: number
   name: string
-  category: string
-  description: string
+  category?: string | null
+  status: string
   connected: boolean
-  logo: string
 }
 
-const initialIntegrations: Integration[] = [
-  { name: 'Ticketmaster', category: 'Ticketing', description: 'Sync ticket sales, attendance data, and fan info', connected: true, logo: '🎟️' },
-  { name: 'AXS', category: 'Ticketing', description: 'Secondary ticketing and fan ID verification', connected: false, logo: '🎫' },
-  { name: 'Square POS', category: 'POS', description: 'Concessions and merchandise point-of-sale data', connected: true, logo: '💳' },
-  { name: 'Toast POS', category: 'POS', description: 'Food & beverage sales and inventory tracking', connected: false, logo: '🍽️' },
-  { name: 'Salesforce CRM', category: 'CRM', description: 'Fan profiles, lifecycle management, and leads', connected: true, logo: '☁️' },
-  { name: 'HubSpot', category: 'CRM', description: 'Email marketing and fan communication hub', connected: false, logo: '🧡' },
-  { name: 'Meta Business Suite', category: 'Social', description: 'Instagram and Facebook ad performance sync', connected: true, logo: '📘' },
-  { name: 'TikTok for Business', category: 'Social', description: 'TikTok content performance and ad data', connected: false, logo: '🎵' },
-  { name: 'Sponsorship Hub', category: 'Sponsor Tools', description: 'ROI tracking and sponsor activation analytics', connected: true, logo: '🤝' },
-  { name: 'Webhook / API', category: 'Developer', description: 'Custom integrations via REST API and webhooks', connected: true, logo: '⚙️' },
-]
+// demo-static: logos are presentation-only (not stored in the API) — keyed by
+// the integration's category, with a generic fallback.
+const categoryLogos: Record<string, string> = {
+  Wearables: '⌚',
+  Payments: '💳',
+  Marketing: '📣',
+  CRM: '☁️',
+  Ticketing: '🎟️',
+  POS: '🛒',
+  Social: '📱',
+}
 
-export default function Integrations() {
-  const [integrations, setIntegrations] = useState(initialIntegrations)
+function IntegrationsView({ data }: { data: Integration[] }) {
+  const [integrations, setIntegrations] = useState(data)
 
-  const toggle = (name: string) => {
+  const toggle = (id: number) => {
     setIntegrations((prev) =>
-      prev.map((i) => (i.name === name ? { ...i, connected: !i.connected } : i))
+      prev.map((i) => (i.id === id ? { ...i, connected: !i.connected } : i))
     )
   }
 
-  const categories = [...new Set(integrations.map((i) => i.category))]
+  const categories = [...new Set(integrations.map((i) => i.category ?? 'Other'))]
 
   return (
-    <div className="space-y-6">
-      <PageHeader title="Integrations" subtitle="Connect your tools and data sources" />
-
+    <>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: 'Connected', count: integrations.filter(i => i.connected).length, color: '#22c55e' },
           { label: 'Available', count: integrations.filter(i => !i.connected).length, color: '#64748b' },
           { label: 'Categories', count: categories.length, color: '#14b8a6' },
-          { label: 'API Active', count: 1, color: '#a855f7' },
+          { label: 'Total', count: integrations.length, color: '#a855f7' },
         ].map((k) => (
           <div key={k.label} className="bg-[#141824] border border-[#2a2f3e] rounded-xl p-4">
             <div className="text-3xl font-black mb-1" style={{ color: k.color }}>{k.count}</div>
@@ -56,15 +55,15 @@ export default function Integrations() {
       {categories.map((cat) => (
         <ChartCard key={cat} title={cat} subtitle={`${cat} integrations`}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {integrations.filter((i) => i.category === cat).map((intg) => (
-              <div key={intg.name} className={`flex items-center gap-3 p-3 bg-[#1a1f2e] rounded-xl border transition-all ${intg.connected ? 'border-[#22c55e]/30' : 'border-[#2a2f3e]'}`}>
-                <span className="text-2xl flex-shrink-0">{intg.logo}</span>
+            {integrations.filter((i) => (i.category ?? 'Other') === cat).map((intg) => (
+              <div key={intg.id} className={`flex items-center gap-3 p-3 bg-[#1a1f2e] rounded-xl border transition-all ${intg.connected ? 'border-[#22c55e]/30' : 'border-[#2a2f3e]'}`}>
+                <span className="text-2xl flex-shrink-0">{categoryLogos[cat] ?? '⚙️'}</span>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold text-[#e2e8f0]">{intg.name}</div>
-                  <div className="text-xs text-[#64748b] truncate">{intg.description}</div>
+                  <div className="text-xs text-[#64748b] truncate">{cat} · {intg.status}</div>
                 </div>
                 <button
-                  onClick={() => toggle(intg.name)}
+                  onClick={() => toggle(intg.id)}
                   className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold flex-shrink-0 transition-all ${
                     intg.connected
                       ? 'bg-[#22c55e]/20 text-[#22c55e] hover:bg-[#ef4444]/20 hover:text-[#ef4444]'
@@ -79,6 +78,19 @@ export default function Integrations() {
           </div>
         </ChartCard>
       ))}
+    </>
+  )
+}
+
+export default function Integrations() {
+  const query = useIntegrations()
+
+  return (
+    <div className="space-y-6">
+      <PageHeader title="Integrations" subtitle="Connect your tools and data sources" />
+      <QueryBoundary query={query}>
+        {(data) => <IntegrationsView data={data} />}
+      </QueryBoundary>
     </div>
   )
 }

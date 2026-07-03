@@ -2,6 +2,13 @@ import ChartCard from '../components/ChartCard'
 import PageHeader from '../components/PageHeader'
 import HeatmapCard from '../components/HeatmapCard'
 import ProgressBar from '../components/ProgressBar'
+import QueryBoundary from '../components/QueryBoundary'
+import {
+  useEnergyTimeline, useKpis, useZoneEngagement, useEmotions,
+  useMoments, useEvents, useSponsorRoi, human,
+} from '../api/queries'
+
+const KPI_HEX: Record<string, string> = { teal: '#14b8a6', gold: '#f59e0b', purple: '#a855f7' }
 
 function Stat({ label, value, color = '#14b8a6' }: { label: string; value: string; color?: string }) {
   return (
@@ -24,6 +31,8 @@ function InsightCard({ title, text, priority = 'High' }: { title: string; text: 
   )
 }
 
+// demo-static: no backing endpoint in MVP — theme-night activation analytics
+// are not modeled in the API.
 const themes = [
   { name: 'Cancer Awareness Night', fei: 91, participation: 78, impact: 94, peak: 'Bell ceremony', rec: 'Repeat the recognition structure and retarget donors during halftime.' },
   { name: 'Hoops & Hounds', fei: 84, participation: 69, impact: 88, peak: 'Adoption walkout', rec: 'Add lower-bowl camera prompts and a branded photo lane.' },
@@ -32,59 +41,69 @@ const themes = [
   { name: 'Pride Night', fei: 86, participation: 75, impact: 89, peak: 'Community anthem', rec: 'Expand partner storytelling around the light-band reveal.' },
 ]
 
-const peaks = [
-  ['6:42 PM', 'Opening ceremony', '82', 'Fans synced wristbands during introductions.'],
-  ['7:18 PM', 'Sponsor activation', '79', 'The concourse scan-to-win promotion pulled families into the challenge.'],
-  ['7:46 PM', 'Bell ceremony', '94', 'The recognition moment produced the strongest emotional language.'],
-  ['8:12 PM', 'Halftime', '91', 'The halftime challenge converted attention into participation.'],
-  ['8:41 PM', 'Mascot interaction', '88', 'Family zones reacted strongly to camera and reward prompts.'],
-  ['9:24 PM', 'Final quarter', '96', 'A close score, rally lights, and prompts aligned across the arena.'],
-]
-
-const sponsors = [
-  ['City Health Network', 'Awareness pledge wall', '38%', '91%', '$186K', '94', 'Main concourse'],
-  ['Summit Bank', 'Halftime fan challenge', '44%', '86%', '$214K', '91', 'Lower bowl center'],
-  ['Volt Beverage', 'Final quarter rally lights', '51%', '88%', '$242K', '96', 'Student section'],
-  ['Metro Wireless', 'Photo share tunnel', '29%', '79%', '$119K', '76', 'Gate 2 entrance'],
-]
-
 export function FanEnergyIndex() {
+  const kpisQ = useKpis()
+  const energyQ = useEnergyTimeline()
   return (
     <div className="space-y-6">
       <PageHeader title="Fan Energy Index" subtitle="Quality of the fan experience, not just attendance" />
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Stat label="Current FEI" value="87.4" />
-        <Stat label="Participation rate" value="73%" color="#a855f7" />
-        <Stat label="Positive sentiment" value="91%" />
-        <Stat label="Sponsor moment lift" value="2.8x" color="#f59e0b" />
-      </div>
-      <ChartCard title="FEI Drivers" accent="teal">
-        <div className="space-y-4">
-          <ProgressBar label="Bell ceremony recognition" value={96} />
-          <ProgressBar label="Halftime sponsor challenge" value={91} color="#f59e0b" />
-          <ProgressBar label="Mascot lower-bowl lap" value={88} color="#a855f7" />
-          <ProgressBar label="Final quarter rally lights" value={96} />
-        </div>
+      <QueryBoundary query={kpisQ} compact>
+        {(kpis) => (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {kpis.map((k) => (
+              <Stat key={k.label} label={k.label} value={`${k.value}${k.suffix ?? ''}`} color={KPI_HEX[k.color] ?? '#14b8a6'} />
+            ))}
+          </div>
+        )}
+      </QueryBoundary>
+      <ChartCard title="FEI Drivers" subtitle="Key moments ranked by peak energy" accent="teal">
+        <QueryBoundary query={energyQ} compact>
+          {(energy) => {
+            const max = Math.max(...energy.map((p) => p.energy), 1)
+            const labeled = energy.filter((p) => p.label)
+            const source = labeled.length ? labeled : energy
+            const top = [...source].sort((a, b) => b.energy - a.energy).slice(0, 5)
+            return (
+              <div className="space-y-4">
+                {top.map((p, i) => (
+                  <ProgressBar
+                    key={`${p.ts}-${i}`}
+                    label={p.label || p.time}
+                    value={Math.round((p.energy / max) * 100)}
+                    color={i === 0 ? '#14b8a6' : i === 1 ? '#f59e0b' : '#a855f7'}
+                  />
+                ))}
+              </div>
+            )
+          }}
+        </QueryBoundary>
       </ChartCard>
     </div>
   )
 }
 
 export function HeatMaps() {
-  const modes = [
-    ['Peak energy', 96, 'Final quarter rally generated the strongest full-arena pulse.'],
-    ['Average energy', 82, 'Lower bowl and family zones stayed consistently above benchmark.'],
-    ['Total energy', 88, 'Cumulative motion and participation exceeded the last theme night.'],
-    ['Crowd congestion', 74, 'Gate 3 and west concourse showed the only sustained bottleneck.'],
-    ['Activation zones', 91, 'Sponsor and community moments over-indexed in student and family sections.'],
-  ] as const
+  const zonesQ = useZoneEngagement()
   return (
     <div className="space-y-6">
-      <PageHeader title="Heat Maps" subtitle="Peak energy, average energy, total energy, congestion, and activation zones" />
+      <PageHeader title="Heat Maps" subtitle="Zone engagement, capacity, and energy across the arena" />
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         <ChartCard title="Arena Heat Map" accent="teal"><HeatmapCard /></ChartCard>
-        <ChartCard title="Heat Map Views" accent="teal">
-          <div className="space-y-4">{modes.map(([label, value, note]) => <ProgressBar key={label} label={`${label}: ${note}`} value={value} color={label === 'Crowd congestion' ? '#f59e0b' : '#14b8a6'} />)}</div>
+        <ChartCard title="Zone Engagement" subtitle="Engagement score by zone" accent="teal">
+          <QueryBoundary query={zonesQ} compact>
+            {(zones) => (
+              <div className="space-y-4">
+                {[...zones].sort((a, b) => b.score - a.score).map((z) => (
+                  <ProgressBar
+                    key={z.zone}
+                    label={`${z.zone}: ${Math.round(z.filled)}% full · ${z.vsAvg >= 0 ? '+' : ''}${z.vsAvg} vs avg`}
+                    value={z.score}
+                    color={z.vsAvg < 0 ? '#f59e0b' : '#14b8a6'}
+                  />
+                ))}
+              </div>
+            )}
+          </QueryBoundary>
         </ChartCard>
       </div>
     </div>
@@ -113,30 +132,109 @@ export function ThemeNights() {
 }
 
 export function SponsorIntelligence() {
+  const sponsorsQ = useSponsorRoi()
   return (
     <div className="space-y-6">
-      <PageHeader title="Sponsor Intelligence" subtitle="Activation performance, fan sentiment, estimated value, and renewal opportunity" />
+      <PageHeader title="Sponsor Intelligence" subtitle="Activation reach, engagement, and return on investment" />
       <ChartCard title="Sponsor Activation Performance" accent="gold">
-        <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-[#2a2f3e]">{['Sponsor','Activation','Interaction','Sentiment','Value','Renewal','Best Zone'].map(h => <th key={h} className="text-left py-2 px-3 text-[10px] text-[#64748b] uppercase whitespace-nowrap">{h}</th>)}</tr></thead><tbody>{sponsors.map((s) => <tr key={s[0]} className="border-b border-[#1a1f2e]"><td className="py-3 px-3 font-semibold text-[#e2e8f0] whitespace-nowrap">{s[0]}</td><td className="py-3 px-3 text-[#94a3b8] whitespace-nowrap">{s[1]}</td><td className="py-3 px-3 text-[#14b8a6] font-bold">{s[2]}</td><td className="py-3 px-3 text-[#94a3b8]">{s[3]}</td><td className="py-3 px-3 text-[#f59e0b] font-bold">{s[4]}</td><td className="py-3 px-3 text-[#14b8a6] font-bold">{s[5]}</td><td className="py-3 px-3 text-[#94a3b8] whitespace-nowrap">{s[6]}</td></tr>)}</tbody></table></div>
+        <QueryBoundary query={sponsorsQ} compact>
+          {(data) => (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[#2a2f3e]">
+                    {['Sponsor', 'Tier', 'Impressions', 'Engagements', 'Clicks', 'Conversions', 'ROI'].map((h) => (
+                      <th key={h} className="text-left py-2 px-3 text-[10px] text-[#64748b] uppercase whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.sponsors.map((s) => (
+                    <tr key={s.name} className="border-b border-[#1a1f2e]">
+                      <td className="py-3 px-3 font-semibold text-[#e2e8f0] whitespace-nowrap">{s.name}</td>
+                      <td className="py-3 px-3 text-[#94a3b8] whitespace-nowrap">{s.tier}</td>
+                      <td className="py-3 px-3 text-[#94a3b8]">{s.impressions}</td>
+                      <td className="py-3 px-3 text-[#14b8a6] font-bold">{s.engagements}</td>
+                      <td className="py-3 px-3 text-[#94a3b8]">{s.clicks}</td>
+                      <td className="py-3 px-3 text-[#94a3b8]">{s.conversions}</td>
+                      <td className="py-3 px-3 text-[#f59e0b] font-bold">{s.roi}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </QueryBoundary>
       </ChartCard>
     </div>
   )
 }
 
 export function EmotionalPeaks() {
+  const momentsQ = useMoments()
+  const emotionsQ = useEmotions()
   return (
     <div className="space-y-6">
       <PageHeader title="Emotional Peaks" subtitle="Timeline of moments when fan energy spiked" />
-      <ChartCard title="Peak Moments Timeline" accent="purple"><div className="space-y-3">{peaks.map(([time, moment, fei, why]) => <div key={time} className="grid grid-cols-1 md:grid-cols-[80px_1fr_70px] gap-3 bg-[#1a1f2e] rounded-lg p-3"><div className="text-xs font-bold text-[#14b8a6]">{time}</div><div><div className="text-sm font-semibold text-[#e2e8f0]">{moment}</div><div className="text-xs text-[#64748b] mt-1">{why}</div></div><div className="md:text-right text-lg font-black text-[#f59e0b]">{fei}</div></div>)}</div></ChartCard>
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <ChartCard title="Peak Moments Timeline" accent="purple">
+          <QueryBoundary query={momentsQ} compact>
+            {(moments) => (
+              <div className="space-y-3">
+                {moments.map((m) => (
+                  <div key={m.rank} className="grid grid-cols-1 md:grid-cols-[80px_1fr_70px] gap-3 bg-[#1a1f2e] rounded-lg p-3">
+                    <div className="text-xs font-bold text-[#14b8a6]">{m.time}</div>
+                    <div>
+                      <div className="text-sm font-semibold text-[#e2e8f0]">{m.event}</div>
+                      <div className="text-xs text-[#64748b] mt-1">Peak moment #{m.rank}</div>
+                    </div>
+                    <div className="md:text-right text-lg font-black" style={{ color: m.color }}>{Math.round(m.energy)}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </QueryBoundary>
+        </ChartCard>
+        <ChartCard title="Fan Emotions" subtitle="Dominant emotional response" accent="purple">
+          <QueryBoundary query={emotionsQ} compact>
+            {(data) => (
+              <div className="space-y-4">
+                {data.fanEmotions.map((e) => (
+                  <ProgressBar key={e.emotion} label={e.emotion} value={Math.round(e.value)} color={e.color} />
+                ))}
+              </div>
+            )}
+          </QueryBoundary>
+        </ChartCard>
+      </div>
     </div>
   )
 }
 
 export function EventComparison() {
+  const eventsQ = useEvents()
   return (
     <div className="space-y-6">
-      <PageHeader title="Event Comparison" subtitle="Current event vs previous event and theme-night benchmark" />
-      <ChartCard title="Comparison Metrics" accent="teal"><div className="space-y-4">{[['FEI',87,74],['Participation',73,58],['Sponsor engagement',84,63],['Sentiment',91,82],['Community impact',94,78]].map(([label, current, previous]) => <div key={label as string}><ProgressBar label={`${label}: current ${current} vs previous ${previous}`} value={current as number} /><div className="mt-1 h-1 bg-[#2a2f3e] rounded"><div className="h-full rounded bg-[#64748b]" style={{ width: `${previous}%` }} /></div></div>)}</div></ChartCard>
+      <PageHeader title="Event Comparison" subtitle="Attendance across events" />
+      <ChartCard title="Attendance by Event" accent="teal">
+        <QueryBoundary query={eventsQ} compact>
+          {(events) => {
+            const max = Math.max(...events.map((e) => e.attendance ?? 0), 1)
+            return (
+              <div className="space-y-4">
+                {[...events].sort((a, b) => (b.attendance ?? 0) - (a.attendance ?? 0)).map((e) => (
+                  <div key={e.id}>
+                    <ProgressBar
+                      label={`${e.name} · ${e.venue} — ${human(e.attendance ?? 0)} attendees`}
+                      value={Math.round(((e.attendance ?? 0) / max) * 100)}
+                    />
+                  </div>
+                ))}
+              </div>
+            )
+          }}
+        </QueryBoundary>
+      </ChartCard>
     </div>
   )
 }
@@ -145,6 +243,7 @@ export function ExecutiveInsights() {
   return (
     <div className="space-y-6">
       <PageHeader title="Executive Insights" subtitle="Decision-ready recommendations for venue, sponsor, staffing, and fan experience leaders" />
+      {/* demo-static: no backing endpoint in MVP — narrative recommendations are not generated by the API. */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <InsightCard title="What worked" text="The bell ceremony created the strongest emotional peak and sponsor-safe community story." />
         <InsightCard title="What underperformed" priority="Medium" text="Gate 3 exit congestion lowered late-event participation and exit sentiment." />

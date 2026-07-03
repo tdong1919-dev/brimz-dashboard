@@ -61,3 +61,40 @@ curl localhost:8000/api/v1/events/1/state    # per-zone energy that advances eac
 
 Acceptance evidence: `pytest` (playback-clock unit tests + API/WebSocket tests)
 and `API_BASE_URL=http://localhost:8000 bash qa/smoke/m2_api.sh`.
+
+## Milestone 3 — Frontend Experience (wired dashboard + auth + admin)
+
+The React dashboard now runs entirely off the API: every page fetches from
+`/api/v1` (TanStack Query, types generated from the OpenAPI schema), the
+Overview/Crowd views stream live per-zone ticks over the WebSocket, and the app
+is gated behind a real login (JWT access + refresh, roles from `access_roles`).
+
+```bash
+# with Postgres up, the DB seeded, and the API running (M1/M2 steps above):
+cd brimz-dashboard
+npm install
+npm run dev                      # Vite on :5173 (API base via VITE_API_BASE_URL)
+```
+
+**Demo logins** (seeded by `brimz seed`; passwords configurable via `.env`):
+
+| Role    | Email              | Password        | Can do |
+|---------|--------------------|-----------------|--------|
+| Admin   | owner@brimz.tech   | `brimz-admin`   | everything + `/admin` simulation cockpit |
+| Manager | ops@brimz.tech     | `brimz-manager` | dashboards + playback control |
+| Viewer  | analyst@brimz.tech | `brimz-viewer`  | dashboards (read-only) |
+
+- **Admin → Stadium Simulation** (`/admin`, Admin only): play/pause the live
+  loop, click the energy curve to seek the whole dashboard to any moment, jump
+  to seeded peaks, change loop speed — plus mock-data controls (reseed with any
+  attendee count as a background task, status, reset) wrapping the M1 CLI.
+- **Settings** (`/settings`): profile + password change (`PATCH /api/v1/auth/me`).
+- **Auth model:** all `/api/v1` reads require a Bearer token; `POST /playback`
+  and WS control frames require Manager/Admin; `/api/v1/admin/*` requires Admin.
+  `/health` stays open. WebSocket auth via `?token=`.
+- **API types:** `npm run gen:api` regenerates `src/api/types.gen.ts` from the
+  running API's `/openapi.json` (CI fails if it drifts).
+
+Acceptance evidence: `pytest` (auth/roles/admin), Playwright e2e
+(`cd qa/e2e && npx playwright test` — login, 24-page nav sweep, live-tick
+advance, seek-freeze, role gates), and `bash qa/smoke/run_all.sh`.

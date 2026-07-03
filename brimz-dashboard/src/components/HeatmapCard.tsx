@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
+import type { StadiumState } from '../live/useLive'
 
-type Tab = 'peak' | 'avg' | 'total'
+type Tab = 'live' | 'peak' | 'avg' | 'total'
 
 // ── Stadium geometry ──────────────────────────────────────────────────────────
 const CX = 268, CY = 192
@@ -32,7 +33,71 @@ type Cfg  = { blobs: Blob[]; label: string; sub: string }
 
 const P = { cx: CX, cy: CY }   // shorthand for center
 
-const CONFIGS: Record<Tab, Cfg> = {
+// ── LIVE tab: blob anchors per seeded zone (SIMULATION view) ─────────────────
+// Each stadium section gets one or two blob anchors; intensity comes from the
+// WebSocket feed's per-zone energy, so sections light up as the playhead moves.
+const ZONE_ANCHORS: Record<string, { cx: number; cy: number; rx: number; ry: number }[]> = {
+  'Floor / GA': [{ cx: CX, cy: CY + 110, rx: 110, ry: 62 }],
+  'Lower Bowl – Center': [
+    { cx: CX - 120, cy: CY, rx: 55, ry: 75 },
+    { cx: CX + 120, cy: CY, rx: 55, ry: 75 },
+  ],
+  'Lower Bowl – Ends': [{ cx: CX, cy: CY - 100, rx: 105, ry: 58 }],
+  'Club Level': [
+    { cx: CX - 175, cy: CY, rx: 55, ry: 85 },
+    { cx: CX + 175, cy: CY, rx: 55, ry: 85 },
+  ],
+  'Upper Bowl – Center': [{ cx: CX, cy: CY - 145, rx: 130, ry: 45 }],
+  'Upper Bowl – Ends': [{ cx: CX, cy: CY + 150, rx: 130, ry: 45 }],
+}
+
+function liveHeatColor(rel: number): string {
+  if (rel >= 0.85) return '#ef4444'
+  if (rel >= 0.7) return '#f97316'
+  if (rel >= 0.55) return '#eab308'
+  if (rel >= 0.4) return '#22c55e'
+  if (rel >= 0.25) return '#06b6d4'
+  return '#1d4ed8'
+}
+
+function liveConfig(state: StadiumState): Cfg {
+  const max = Math.max(...state.zones.map((z) => z.energy), 1)
+  const blobs: Blob[] = [
+    // Cold base
+    { ...P, rx: 250, ry: 168, fill: '#0e1040', opacity: 0.95, blur: 0 },
+    { ...P, rx: 250, ry: 168, fill: '#1e3a8a', opacity: 0.5, blur: 18 },
+  ]
+  for (const zone of state.zones) {
+    const rel = zone.energy / max
+    for (const a of ZONE_ANCHORS[zone.name] ?? []) {
+      blobs.push({
+        ...a,
+        rx: a.rx * (0.7 + 0.4 * rel),
+        ry: a.ry * (0.7 + 0.4 * rel),
+        fill: liveHeatColor(rel),
+        opacity: 0.35 + 0.6 * rel,
+        blur: 18,
+      })
+      // hot core for the most intense sections
+      if (rel >= 0.7) {
+        blobs.push({
+          cx: a.cx, cy: a.cy, rx: a.rx * 0.5, ry: a.ry * 0.5,
+          fill: rel >= 0.85 ? '#ff7070' : '#f97316', opacity: 0.8, blur: 8,
+        })
+      }
+    }
+  }
+  const playhead = new Date(state.playhead)
+  const h24 = playhead.getUTCHours()
+  const clock = `${h24 % 12 || 12}:${String(playhead.getUTCMinutes()).padStart(2, '0')} ${h24 < 12 ? 'AM' : 'PM'}`
+  return {
+    blobs,
+    label: `LIVE · ${clock}`,
+    sub: `Total energy right now: ${Math.round(state.total_energy / 1000)}K — sections update every tick`,
+  }
+}
+
+const CONFIGS: Record<Exclude<Tab, 'live'>, Cfg> = {
   // ── PEAK ENERGY ─────────────────────────────────────────────────────────────
   peak: {
     blobs: [
@@ -142,21 +207,28 @@ const BLUR_VALUES = [...new Set(
 )].filter(b => b > 0).sort((a, b) => a - b)
 
 // ══════════════════════════════════════════════════════════════════════════════
-export default function HeatmapCard() {
-  const [tab, setTab] = useState<Tab>('peak')
-  const cfg = CONFIGS[tab]
+export default function HeatmapCard({ liveState }: { liveState?: StadiumState | null }) {
+  const [tab, setTab] = useState<Tab>(liveState !== undefined ? 'live' : 'peak')
+  const cfg = tab === 'live' && liveState ? liveConfig(liveState) : CONFIGS[tab === 'live' ? 'peak' : tab]
+
+  const tabs: [Tab, string][] = [
+    ...(liveState !== undefined ? ([['live', '● Live']] as [Tab, string][]) : []),
+    ['peak', 'Peak Energy'],
+    ['avg', 'Avg Energy'],
+    ['total', 'Total Energy'],
+  ]
 
   return (
     <div>
       {/* Tabs */}
       <div className="flex gap-1 mb-3">
-        {([['peak','Peak Energy'],['avg','Avg Energy'],['total','Total Energy']] as [Tab,string][]).map(([t, lbl]) => (
+        {tabs.map(([t, lbl]) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-3 py-1 rounded text-xs font-semibold transition-all border ${
               tab === t
                 ? 'bg-transparent border-[#14b8a6] text-[#14b8a6]'
                 : 'border-transparent text-[#64748b] hover:text-[#94a3b8]'
-            }`}
+            } ${t === 'live' && tab === 'live' ? 'animate-pulse' : ''}`}
           >{lbl}</button>
         ))}
       </div>
@@ -269,7 +341,7 @@ export default function HeatmapCard() {
 
       {/* Footer */}
       <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-        <span className="text-xs font-bold" style={{ color: CONFIGS[tab].label.startsWith('Total') ? '#14b8a6' : '#14b8a6' }}>
+        <span className="text-xs font-bold text-[#14b8a6]" data-testid="heatmap-label">
           {cfg.label}
         </span>
         <span className="text-[10px] text-[#64748b]">{cfg.sub}</span>

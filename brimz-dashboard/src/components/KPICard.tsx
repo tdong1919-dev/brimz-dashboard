@@ -5,8 +5,8 @@ interface Props {
   label: string
   value: string
   suffix?: string
-  change: string
-  up: boolean
+  change?: string
+  up?: boolean
   color: 'teal' | 'gold' | 'purple'
   icon: string
   sub?: string
@@ -44,10 +44,12 @@ export default function KPICard({ label, value, suffix, change, up, color, icon,
 
       {/* Change + sub */}
       <div className="flex items-center gap-1.5 flex-wrap">
-        <span className={`text-xs font-bold flex items-center gap-0.5 ${up ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
-          {up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-          {change}
-        </span>
+        {change !== undefined && (
+          <span className={`text-xs font-bold flex items-center gap-0.5 ${up ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
+            {up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+            {change}
+          </span>
+        )}
         {sub && <span className="text-[10px] text-[#475569]">{sub}</span>}
       </div>
     </div>

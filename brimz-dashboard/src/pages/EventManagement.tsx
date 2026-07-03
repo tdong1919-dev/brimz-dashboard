@@ -1,5 +1,6 @@
 import { Calendar, CheckCircle, Circle, Clock, MapPin } from 'lucide-react'
-import { events } from '../data/mockData'
+import { useEvents } from '../api/queries'
+import QueryBoundary from '../components/QueryBoundary'
 import ChartCard from '../components/ChartCard'
 import PageHeader from '../components/PageHeader'
 
@@ -31,43 +32,49 @@ const timeline = [
 ]
 
 export default function EventManagement() {
+  const eventsQuery = useEvents()
+
   return (
     <div className="space-y-6">
       <PageHeader title="Event Management" subtitle="Upcoming events, setup checklists, and activation timelines" />
 
       <ChartCard title="Upcoming Events">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-[#2a2f3e]">
-                {['Event', 'Date', 'Venue', 'Expected Attendance', 'Status'].map((h) => (
-                  <th key={h} className="text-left py-2 px-3 text-[10px] font-semibold text-[#64748b] uppercase tracking-wide">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {events.map((e) => (
-                <tr key={e.id} className="border-b border-[#1a1f2e] hover:bg-[#1a1f2e]/50 transition-colors">
-                  <td className="py-2.5 px-3 font-medium text-[#e2e8f0]">{e.name}</td>
-                  <td className="py-2.5 px-3 text-[#94a3b8]">{e.date}</td>
-                  <td className="py-2.5 px-3 text-[#94a3b8]">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-3 h-3" />
-                      {e.venue}
-                    </div>
-                  </td>
-                  <td className="py-2.5 px-3 text-[#94a3b8]">{e.attendance.toLocaleString()}</td>
-                  <td className="py-2.5 px-3">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                      style={{ backgroundColor: `${statusColors[e.status]}20`, color: statusColors[e.status] }}>
-                      {e.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <QueryBoundary query={eventsQuery} compact>
+          {(events) => (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[#2a2f3e]">
+                    {['Event', 'Date', 'Venue', 'Expected Attendance', 'Status'].map((h) => (
+                      <th key={h} className="text-left py-2 px-3 text-[10px] font-semibold text-[#64748b] uppercase tracking-wide">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {events.map((e) => (
+                    <tr key={e.id} className="border-b border-[#1a1f2e] hover:bg-[#1a1f2e]/50 transition-colors">
+                      <td className="py-2.5 px-3 font-medium text-[#e2e8f0]">{e.name}</td>
+                      <td className="py-2.5 px-3 text-[#94a3b8]">{e.date}</td>
+                      <td className="py-2.5 px-3 text-[#94a3b8]">
+                        <div className="flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          {e.venue}
+                        </div>
+                      </td>
+                      <td className="py-2.5 px-3 text-[#94a3b8]">{e.attendance.toLocaleString()}</td>
+                      <td className="py-2.5 px-3">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                          style={{ backgroundColor: `${statusColors[e.status]}20`, color: statusColors[e.status] }}>
+                          {e.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </QueryBoundary>
       </ChartCard>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

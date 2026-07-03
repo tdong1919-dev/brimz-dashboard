@@ -2,7 +2,17 @@ import { useMemo, useState } from 'react'
 import { CheckCircle } from 'lucide-react'
 import ChartCard from '../components/ChartCard'
 import PageHeader from '../components/PageHeader'
+import QueryBoundary from '../components/QueryBoundary'
+import { useBilling } from '../api/queries'
 
+const statusColors: Record<string, string> = {
+  Paid: '#22c55e',
+  Pending: '#f59e0b',
+  Overdue: '#ef4444',
+}
+
+// demo-static: pricing tiers, consortium perks, and FAQ copy are sales content
+// with no backing endpoint in the MVP.
 const tiers = [
   {
     name: 'Small Venues',
@@ -47,6 +57,7 @@ function Feature({ children }: { children: React.ReactNode }) {
 }
 
 export default function Billing() {
+  const billingQuery = useBilling()
   const [attendance, setAttendance] = useState(3000)
   const [events, setEvents] = useState(36)
   const [concessions, setConcessions] = useState(24)
@@ -66,6 +77,42 @@ export default function Billing() {
   return (
     <div className="space-y-6">
       <PageHeader title="Venue Intelligence Pricing" subtitle="Venue-based pricing for live events, arenas, teams, sponsors, and fan experience executives" />
+
+      <ChartCard title="Billing History" subtitle="Invoices and platform charges">
+        <QueryBoundary query={billingQuery} compact>
+          {(records) => (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[#2a2f3e]">
+                    {['Description', 'Period', 'Amount', 'Status'].map((h) => (
+                      <th key={h} className="text-left py-2 px-3 text-[10px] font-semibold text-[#64748b] uppercase tracking-wide">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {records.map((r) => {
+                    const color = statusColors[r.status] ?? '#64748b'
+                    return (
+                      <tr key={r.id} className="border-b border-[#1a1f2e] hover:bg-[#1a1f2e]/50 transition-colors">
+                        <td className="py-2.5 px-3 font-medium text-[#e2e8f0]">{r.description}</td>
+                        <td className="py-2.5 px-3 text-[#94a3b8]">{r.period ?? '—'}</td>
+                        <td className="py-2.5 px-3 text-[#14b8a6] font-semibold">${r.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td className="py-2.5 px-3">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                            style={{ backgroundColor: `${color}20`, color }}>
+                            {r.status}
+                          </span>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </QueryBoundary>
+      </ChartCard>
 
       <ChartCard title="Founding Venue Intelligence Consortium" subtitle="Invitation Only - limited to 10 organizations" accent="teal" className="shadow-[0_0_34px_rgba(20,184,166,0.12)]">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-4 items-start">
