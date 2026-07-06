@@ -1,0 +1,11 @@
+{
+  "user": {
+    "encodedId": "FIXTURE1",
+    "fullName": "Fixture Fan",
+    "age": 27,
+    "gender": "FEMALE",
+    "city": "City A",
+    "memberSince": "2023-04-11",
+    "averageDailySteps": 8200
+  }
+}

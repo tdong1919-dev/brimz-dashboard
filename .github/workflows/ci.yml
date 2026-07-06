@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend — pytest + DB smoke
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: brimz
+          POSTGRES_PASSWORD: brimz
+          POSTGRES_DB: brimz
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U brimz -d brimz"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      DATABASE_URL: postgresql+psycopg://brimz:brimz@localhost:5433/brimz
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install backend
+        run: |
+          cd backend
+          python -m venv .venv
+          .venv/bin/pip install -e ".[dev]"
+      - name: Migrate + seed + validate
+        run: |
+          cd backend
+          .venv/bin/alembic upgrade head
+          .venv/bin/brimz seed
+          .venv/bin/brimz validate
+      - name: Pytest
+        run: cd backend && .venv/bin/pytest -q
+      - name: Start API (for M2 smoke)
+        run: |
+          cd backend
+          .venv/bin/brimz serve --host 127.0.0.1 --port 8000 &
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:8000/health && break
+            sleep 1
+          done
+      - name: Smoke (DB + API)
+        env:
+          API_BASE_URL: http://127.0.0.1:8000
+        run: bash qa/smoke/run_all.sh
+
+  e2e:
+    name: Frontend — Playwright (full stack)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: brimz
+          POSTGRES_PASSWORD: brimz
+          POSTGRES_DB: brimz
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U brimz -d brimz"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      DATABASE_URL: postgresql+psycopg://brimz:brimz@localhost:5433/brimz
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install + seed backend
+        run: |
+          cd backend
+          python -m venv .venv
+          .venv/bin/pip install -e ".[dev]"
+          .venv/bin/alembic upgrade head
+          .venv/bin/brimz seed
+      - name: Start API
+        run: |
+          cd backend
+          .venv/bin/brimz serve --host 127.0.0.1 --port 8000 &
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:8000/health && break
+            sleep 1
+          done
+      - name: Install dashboard deps
+        run: cd brimz-dashboard && npm install
+      - name: Typecheck dashboard
+        run: cd brimz-dashboard && npx tsc --noEmit
+      - name: Check generated API types are current
+        run: |
+          cd brimz-dashboard
+          npm run gen:api
+          git diff --exit-code src/api/types.gen.ts \
+            || { echo "::error::src/api/types.gen.ts is stale — run npm run gen:api"; exit 1; }
+      - name: Build dashboard
+        run: cd brimz-dashboard && npm run build
+      - name: Install e2e deps
+        run: cd qa/e2e && npm install
+      - name: Install Playwright browsers
+        run: cd qa/e2e && npx playwright install --with-deps chromium
+      - name: Run Playwright (includes destructive reseed test)
+        env:
+          VITE_API_BASE_URL: http://127.0.0.1:8000
+          RESEED_E2E: '1'
+        run: cd qa/e2e && npx playwright test
