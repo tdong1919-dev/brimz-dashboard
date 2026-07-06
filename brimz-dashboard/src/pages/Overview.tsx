@@ -21,12 +21,12 @@ const TT = {
 // ── tiny helpers ──────────────────────────────────────────────────────────────
 function SectionHeader({ title, right }: { title: string; right?: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between mb-3">
-      <div className="flex items-center gap-1.5">
+    <div className="flex items-center justify-between gap-2 mb-3">
+      <div className="flex items-center gap-1.5 min-w-0">
         <span className="text-xs font-bold tracking-widest text-[#94a3b8] uppercase">{title}</span>
         <span className="text-[#2a2f3e] text-xs">ⓘ</span>
       </div>
-      {right}
+      {right && <div className="shrink-0">{right}</div>}
     </div>
   )
 }
@@ -114,7 +114,7 @@ export default function Overview() {
         {/* Energy Over Time */}
         <Card className="col-span-12 lg:col-span-4">
           <SectionHeader title="Energy Over Time"
-            right={<button className="text-[10px] bg-[#1a1f2e] border border-[#2a2f3e] rounded px-2 py-0.5 text-[#64748b]">All Events ▾</button>}
+            right={<button className="text-[10px] whitespace-nowrap bg-[#1a1f2e] border border-[#2a2f3e] rounded px-2 py-0.5 text-[#64748b]">All Events ▾</button>}
           />
           <QueryBoundary query={energyQ} compact>
             {(energyTimeline) => {
@@ -172,7 +172,7 @@ export default function Overview() {
         {/* Engagement by Stadium Zone */}
         <Card className="col-span-12 lg:col-span-3">
           <SectionHeader title="Engagement by Stadium Zone"
-            right={<button className="text-[10px] bg-[#1a1f2e] border border-[#2a2f3e] rounded px-2 py-0.5 text-[#64748b]">All Events ▾</button>}
+            right={<button className="text-[10px] whitespace-nowrap bg-[#1a1f2e] border border-[#2a2f3e] rounded px-2 py-0.5 text-[#64748b]">All Events ▾</button>}
           />
           <div className="flex justify-end gap-4 mb-2">
             <span className="text-[9px] text-[#64748b]">Engagement Score</span>
@@ -476,7 +476,7 @@ export default function Overview() {
         {/* Top Moments */}
         <Card className="col-span-12 lg:col-span-3">
           <SectionHeader title="Top Moments"
-            right={<button className="text-[10px] bg-[#1a1f2e] border border-[#2a2f3e] rounded px-2 py-0.5 text-[#64748b]">By Energy ▾</button>}
+            right={<button className="text-[10px] whitespace-nowrap bg-[#1a1f2e] border border-[#2a2f3e] rounded px-2 py-0.5 text-[#64748b]">By Energy ▾</button>}
           />
           <QueryBoundary query={momentsQ} compact>
             {(topMoments) => {
